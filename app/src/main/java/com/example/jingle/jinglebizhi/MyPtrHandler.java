@@ -37,12 +37,12 @@ public class MyPtrHandler implements PtrUIHandler {
 
     @Override
     public void onUIRefreshPrepare(PtrFrameLayout frame) {
-        tip.setText("Pull To Refresh");
+        tip.setText("菊为，大有可为");
     }
 
     @Override
     public void onUIRefreshBegin(PtrFrameLayout frame) {
-        tip.setText("Loading......");
+        tip.setText("加载中......");
         RotateAnimation animation = new RotateAnimation(0, 360, img.getPivotX(), img.getPivotY());
         animation.setFillAfter(false);
         animation.setDuration(1000);
@@ -52,8 +52,8 @@ public class MyPtrHandler implements PtrUIHandler {
 
     @Override
     public void onUIRefreshComplete(PtrFrameLayout frame, boolean isHeader) {
-        tip.setText("Load Complete");
-        Toast.makeText(context, "Load Complete!!", Toast.LENGTH_SHORT).show();
+        tip.setText("加载完成！");
+        Toast.makeText(context, "加载完成!", Toast.LENGTH_SHORT).show();
     }
 
     @Override

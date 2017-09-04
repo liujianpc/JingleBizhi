@@ -33,15 +33,16 @@ dependencies {
     compile('com.android.support:appcompat-v7:25.3.1') {
 
     }
-    androidTestCompile 'junit:junit:4.12'
-    compile 'in.srain.cube:ptr-load-more:1.0.6'
     /*compile ('in.srain.cube:clog:1.0.2',{
             exclude group: 'com.android.support:appcompat-v4', module: 'support-annotations'
         })
         compile ('in.srain.cube:cube-sdk:1.0.44.38',{
             exclude group: 'com.android.support:appcompat-v4', module: 'support-annotations'
         })*/
+    compile files('libs/jsoup-1.10.2.jar')
+    compile 'in.srain.cube:ptr-load-more:1.0.6'
     compile 'com.google.code.gson:gson:2.6.2'
     compile 'com.github.bumptech.glide:glide:3.6.1'
-    compile files('libs/jsoup-1.10.2.jar')
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    androidTestCompile 'junit:junit:4.12'
 }

@@ -72,8 +72,8 @@ class MyAdapter extends BaseAdapter {
             view = convertView;
             viewHolder = (ViewHolder) view.getTag();
         }
-        Glide.with(mContext).load(model.url).centerCrop().into(viewHolder.imageView);
-        viewHolder.title.setText(model.who);
+        Glide.with(mContext).load(model.getSmallFilePath()).centerCrop().into(viewHolder.imageView);
+        viewHolder.title.setText(model.name+"\n下载:"+model.downloadCount);
         return view;
     }
 

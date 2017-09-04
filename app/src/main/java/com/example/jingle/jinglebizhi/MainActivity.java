@@ -1,18 +1,16 @@
 package com.example.jingle.jinglebizhi;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.google.gson.Gson;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,10 +30,11 @@ public class MainActivity extends AppCompatActivity {
 
     private PtrClassicFrameLayout frameLayout;
     private GridView gridView;
-    private List<Model> modelList = new ArrayList<>();
+    private ArrayList<Model> modelList = new ArrayList<>();
+    private List<Model> loadList = new ArrayList<>();
     private MyAdapter adapter;
     private ActionBar actionBar;
-    private int count = 1;
+    private int pageIndex = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,31 +56,53 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         frameLayout = (PtrClassicFrameLayout) findViewById(R.id.ptr_frame);
         gridView = (GridView) findViewById(R.id.grid_view);
+        adapter = new MyAdapter(MainActivity.this, modelList, R.layout.item_listview);
+        gridView.setAdapter(adapter);
         frameLayout.setHeaderView(new MyPtrRefresher(MainActivity.this));
         frameLayout.addPtrUIHandler(new MyPtrHandler(MainActivity.this, frameLayout));
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Model model = adapter.getItem(position);
+                Intent intent = new Intent(MainActivity.this, ShowPicActivity.class);
+                //intent.putExtra("position", model.getBigFilePath());
+                intent.putExtra("position", position);
+                intent.putExtra("modelList", modelList);
+                startActivity(intent);
+            }
+        });
 
     }
 
     private void initData() {
-        new Thread(new MyRunnable()).start();
+        new Thread(new MyRunnable(1)).start();
 
     }
 
     class MyRunnable implements Runnable {
+        private int pageIndex;
+
+        public MyRunnable(int pageIndex) {
+            this.pageIndex = pageIndex;
+        }
 
         @Override
         public void run() {
 
-            String requestUrl = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9/100/1";
+            String requestUrl = "https://servicesupport1.hicloud.com/servicesupport/theme/getResourceInfo.do?&type=0&language=Chinese&begin=" + pageIndex + "&length=15&sort=hottest&categoryId=0&ver=1.6&chargeflag=-1&sign=061k10064111CN@7B300BC2C14CF43A0FB8958E2C71EA51&versionCode=70202";
             String json = getByConnection(requestUrl);
             Gson gson = new Gson();
             DataTop dataTop = gson.fromJson(json, DataTop.class);
-            modelList = dataTop.results;
+            if (dataTop != null) {
+                loadList = dataTop.list;
+                modelList.addAll(modelList.size(), loadList);
+            } else {
+                ToastUtil.showToast(MainActivity.this, "Json解析错误");
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    adapter = new MyAdapter(MainActivity.this, modelList, R.layout.item_listview);
-                    gridView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
                 }
             });
@@ -110,9 +131,9 @@ public class MainActivity extends AppCompatActivity {
             br.close();
 
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            ToastUtil.showToast(MainActivity.this, e.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            ToastUtil.showToast(MainActivity.this, e.toString());
         } finally {
             return new String(stringBuffer);
         }
@@ -122,19 +143,17 @@ public class MainActivity extends AppCompatActivity {
         frameLayout.setPtrHandler(new PtrDefaultHandler2() {
             @Override
             public void onLoadMoreBegin(PtrFrameLayout frame) {
-                if (count <= 74) {
-                    final List<Model> meiziList = getMeiziList();
+                if (pageIndex <= 139) {
+                    new Thread(new MyRunnable(pageIndex)).start();
                     frame.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            int size = modelList.size();
-                            modelList.addAll(size, meiziList);
                             adapter.notifyDataSetChanged();
                             frameLayout.refreshComplete();
                             gridView.smoothScrollToPosition(modelList.size() - 1);
                         }
                     }, 1000);
-                    count++;
+                    pageIndex++;
                 } else {
                     ToastUtil.showToast(MainActivity.this, "已全部加载完！");
                 }
@@ -143,10 +162,33 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onRefreshBegin(PtrFrameLayout frame) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String requestUrl = "https://servicesupport1.hicloud.com/servicesupport/theme/getResourceInfo.do?&type=0&language=Chinese&begin=1&length=15&sort=hottest&categoryId=0&ver=1.6&chargeflag=-1&sign=061k10064111CN@7B300BC2C14CF43A0FB8958E2C71EA51&versionCode=70202";
+                        String json = getByConnection(requestUrl);
+                        Gson gson = new Gson();
+                        DataTop dataTop = gson.fromJson(json, DataTop.class);
+                        if (dataTop != null) {
+                            loadList = dataTop.list;
+                            for (int i = loadList.size() - 1; i >= 0; i--) {
+                                if (!modelList.contains(loadList.get(i))) {
+                                    modelList.add(0, loadList.get(i));
+                                }
+                            }
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                }).start();
                 frame.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        modelList.add(0, new Model("http://img.mmjpg.com/small/2017/1081.jpg", "新增"));
+                        //modelList.add(0, new Model("http://img.mmjpg.com/small/2017/1081.jpg", "新增"));
                         adapter.notifyDataSetChanged();
                         frameLayout.refreshComplete();
                         gridView.smoothScrollToPosition(0);
@@ -190,66 +232,5 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    /*private List<Model> getMeiziList(int index) {
-        String baseUrl = "http://www.mmjpg.com/home/";
-        final String requestUrl = baseUrl + index;
-        final List<Model> list = new ArrayList<>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Document document = Jsoup.connect(requestUrl).get();
-                    Element ulElement = document.select("ul").get(0);
-                    Elements elements = ulElement.select("li");
-                    for (Element e :
-                            elements) {
-                        Element imageElement = e.select("a").first().select("img").first();
-                        String imageUrl = imageElement.attr("src");
-                        String title = imageElement.attr("alt");
-                        list.add(new Model(imageUrl, title));
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
 
-        return list;
-
-    }*/
-    private List<Model> getMeiziList() {
-        final String baseUrl = "https://www.mimimn.com/";
-        final List<Model> list = new ArrayList<>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Document document = Jsoup.connect(baseUrl).get();
-                    Elements liElements = document.select("li.tuli");
-                    /*ulElements.remove(0);
-                    ulElements.remove(1);
-                    ulElements.remove(3);
-                    ulElements.remove(5);
-                    ulElements.remove(7);
-                    ulElements.remove(9);
-                    ulElements.remove(11);*/
-                    for (Element e : liElements
-                            ) {
-                        Element img = e.select("a").first().select("img").first();
-                        String imageUrl = img.attr("src");
-                        String title = img.attr("alt");
-                        list.add(new Model(imageUrl, title));
-
-
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-        return list;
-
-    }
 }

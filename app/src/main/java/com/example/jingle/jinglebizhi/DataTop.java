@@ -7,22 +7,27 @@ import java.util.List;
  */
 
 public class DataTop {
-    boolean error;
-    List<Model> results;
+    String fileHost;
+    List<Model> list;
 
-    public boolean isError() {
-        return error;
+    public DataTop(String fileHost, List<Model> list) {
+        this.fileHost = fileHost;
+        this.list = list;
     }
 
-    public void setError(boolean error) {
-        this.error = error;
+    public String getFileHost() {
+        return fileHost;
     }
 
-    public List<Model> getResults() {
-        return results;
+    public void setFileHost(String fileHost) {
+        this.fileHost = fileHost;
     }
 
-    public void setResults(List<Model> results) {
-        this.results = results;
+    public List<Model> getList() {
+        return list;
+    }
+
+    public void setList(List<Model> list) {
+        this.list = list;
     }
 }
