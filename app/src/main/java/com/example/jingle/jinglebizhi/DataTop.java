@@ -8,10 +8,12 @@ import java.util.List;
 
 public class DataTop {
     String fileHost;
+    int totalPage;
     List<Model> list;
 
-    public DataTop(String fileHost, List<Model> list) {
+    public DataTop(String fileHost, int totalPage, List<Model> list) {
         this.fileHost = fileHost;
+        this.totalPage = totalPage;
         this.list = list;
     }
 
@@ -21,6 +23,14 @@ public class DataTop {
 
     public void setFileHost(String fileHost) {
         this.fileHost = fileHost;
+    }
+
+    public int getTotalPage() {
+        return totalPage;
+    }
+
+    public void setTotalPage(int totalPage) {
+        this.totalPage = totalPage;
     }
 
     public List<Model> getList() {

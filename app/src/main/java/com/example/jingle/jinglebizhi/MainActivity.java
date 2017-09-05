@@ -25,6 +25,8 @@ import java.util.List;
 import in.srain.cube.views.ptr.PtrClassicFrameLayout;
 import in.srain.cube.views.ptr.PtrDefaultHandler2;
 import in.srain.cube.views.ptr.PtrFrameLayout;
+import scut.carson_ho.searchview.ICallBack;
+import scut.carson_ho.searchview.bCallBack;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private MyAdapter adapter;
     private ActionBar actionBar;
     private int pageIndex = 1;
+    private scut.carson_ho.searchview.SearchView searchView;
+    private int totalPage = 139;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +75,21 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+        searchView = (scut.carson_ho.searchview.SearchView) findViewById(R.id.search_view);
+        searchView.setOnClickSearch(new ICallBack() {
+            @Override
+            public void SearchAciton(String s) {
+                Intent intent = new Intent(MainActivity.this, SearchResultActivity.class);
+                intent.putExtra("keyWord", s);
+                startActivity(intent);
+            }
+        });
+        searchView.setOnClickBack(new bCallBack() {
+            @Override
+            public void BackAciton() {
+                finish();
+            }
+        });
     }
 
     private void initData() {
@@ -94,10 +112,16 @@ public class MainActivity extends AppCompatActivity {
             Gson gson = new Gson();
             DataTop dataTop = gson.fromJson(json, DataTop.class);
             if (dataTop != null) {
+                totalPage = dataTop.totalPage;
                 loadList = dataTop.list;
                 modelList.addAll(modelList.size(), loadList);
             } else {
-                ToastUtil.showToast(MainActivity.this, "Json解析错误");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ToastUtil.showToast(MainActivity.this, "Json解析错误");
+                    }
+                });
             }
 
             runOnUiThread(new Runnable() {
@@ -143,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         frameLayout.setPtrHandler(new PtrDefaultHandler2() {
             @Override
             public void onLoadMoreBegin(PtrFrameLayout frame) {
-                if (pageIndex <= 139) {
+                if (pageIndex <= totalPage) {
                     new Thread(new MyRunnable(pageIndex)).start();
                     frame.postDelayed(new Runnable() {
                         @Override
